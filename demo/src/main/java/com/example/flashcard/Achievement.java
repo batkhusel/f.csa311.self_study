@@ -3,17 +3,11 @@ package com.example.flashcard;
 import java.io.Serializable;
 
 public class Achievement implements Serializable {
-    private static final long serialVersionUID = 1L;
 
     private String name;
     private String description;
     private boolean earned;
 
-    /**
-     * 
-     * @param name        The name of the achievement
-     * @param description The description of the achievement
-     */
     public Achievement(String name, String description) {
         this.name = name;
         this.description = description;
