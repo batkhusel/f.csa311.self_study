@@ -11,3 +11,4 @@ What is the capital of Japan?	Tokyo
 What is the currency of UK?	Pound
 What is 5 x 5?	25
 What's the opposite of hot?	Cold
+test	test
