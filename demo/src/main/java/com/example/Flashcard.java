@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class Flashcard {
-    private static final int DEFAULT_REPETITIONS = 1;
     private static final String DEFAULT_ORDER = "random";
     private static final boolean DEFAULT_INVERT_CARDS = false;
 
@@ -109,12 +108,14 @@ public class Flashcard {
     public void studyCards() {
         boolean allCardsCompleted = false;
         boolean hasStudiedAnyCards = false;
+        int maxCardsPerRound = Integer.MAX_VALUE;
 
         while (!allCardsCompleted) {
             List<Card> organizedCards = organizer.organize(cards);
             long totalTime = 0;
             boolean allCorrectThisRound = true;
             boolean studiedCardsThisRound = false;
+            int cardsStudiedThisRound = 0;
 
             System.out.println("\n===== NEW ROUND =====\n");
 
@@ -122,8 +123,13 @@ public class Flashcard {
                 if (card.getCorrectAnswers() >= requiredRepetitions)
                     continue;
 
+                if (cardsStudiedThisRound >= maxCardsPerRound) {
+                    break;
+                }
+
                 studiedCardsThisRound = true;
                 hasStudiedAnyCards = true;
+                cardsStudiedThisRound++;
 
                 String question = invertCards ? card.getAnswer() : card.getQuestion();
                 String answer = invertCards ? card.getQuestion() : card.getAnswer();
@@ -149,16 +155,14 @@ public class Flashcard {
                 totalTime += timeSpent;
                 System.out.println();
 
-                achievementManager.checkAchievements(card, allCorrectThisRound, totalTime, organizedCards.size());
+                achievementManager.checkAchievements(card, allCorrectThisRound, totalTime, cardsStudiedThisRound);
             }
 
             if (!studiedCardsThisRound) {
                 if (hasStudiedAnyCards) {
-                    // We've studied some cards in previous rounds but none this round
                     System.out.println("All cards have reached the required " + requiredRepetitions +
                             " repetition(s)! Great job!");
                 } else {
-                    // We haven't studied any cards at all
                     System.out.println("No cards to study! The required repetition count is " + requiredRepetitions +
                             ". You may need to add cards or reset your progress.");
                 }
@@ -166,7 +170,6 @@ public class Flashcard {
             } else {
                 displayAchievements();
 
-                // Check if all cards have now reached the required repetitions
                 allCardsCompleted = true;
                 for (Card card : cards) {
                     if (card.getCorrectAnswers() < requiredRepetitions) {
@@ -256,7 +259,6 @@ public class Flashcard {
             String question = entry.getKey();
             int count = entry.getValue();
 
-            // Find the answer
             String answer = "";
             for (Card card : cards) {
                 if (card.getQuestion().equals(question)) {
@@ -364,6 +366,9 @@ public class Flashcard {
         System.out.println("  5. Change Card Order     - Adjust presentation");
         System.out.println("  6. View Achievements     - Track learning progress");
         System.out.println("  7. Settings              - Adjust preferences");
+        System.out.println("     - Change Repetitions  - How many times to answer correctly");
+        System.out.println("     - Invert Cards        - Swap questions/answers");
+        System.out.println("     - Reset Progress      - Clear all card statistics");
         System.out.println("  8. Help                  - Display help");
         System.out.println("  9. Exit                  - Close application");
     }
@@ -384,10 +389,52 @@ public class Flashcard {
         this.invertCards = !invertCards;
     }
 
+    public void resetCardProgress() {
+        System.out.println("\n===== RESET CARD PROGRESS =====");
+        System.out.print("Are you sure you want to reset all card progress? (y/n): ");
+        String confirmation = readInput().trim().toLowerCase();
+
+        if (confirmation.equals("y") || confirmation.equals("yes")) {
+            for (Card card : cards) {
+                card.resetProgress();
+            }
+            System.out.println("All card progress has been reset.");
+        } else {
+            System.out.println("Reset cancelled.");
+        }
+    }
+
+    public void showCardStats() {
+        System.out.println("\n===== CARD STATISTICS =====");
+        List<Card> sortedCards = organizer.organize(cards);
+
+        System.out.println("Current order: " + currentOrder);
+        System.out.println("Required repetitions: " + requiredRepetitions);
+        System.out.println("Total cards: " + sortedCards.size());
+        System.out.println();
+
+        for (int i = 0; i < sortedCards.size(); i++) {
+            Card card = sortedCards.get(i);
+            double ratio = card.getTotalAttempts() == 0 ? 0
+                    : (double) card.getCorrectAnswers() / card.getTotalAttempts();
+
+            System.out.println((i + 1) + ". Q: " + card.getQuestion());
+            System.out.println("   A: " + card.getAnswer());
+            System.out.println("   Total attempts: " + card.getTotalAttempts());
+            System.out.println("   Correct answers: " + card.getCorrectAnswers() + "/" + requiredRepetitions);
+            System.out.println("   Success ratio: " + String.format("%.2f", ratio * 100) + "%");
+            System.out.println("   Last answer correct: " + (card.wasAnsweredCorrectlyLastTime() ? "Yes" : "No"));
+            System.out.println();
+        }
+
+        System.out.print("Press Enter to continue...");
+        readInput();
+    }
+
     public static void main(String[] args) {
         String cardsFile;
         String order = DEFAULT_ORDER;
-        int repetitions = DEFAULT_REPETITIONS;
+        int repetitions = 5;
         boolean invertCards = DEFAULT_INVERT_CARDS;
         boolean showHelp = false;
 

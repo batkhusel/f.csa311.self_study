@@ -49,4 +49,11 @@ public class Card {
     public long getLastAnswerTime() {
         return lastAnswerTime;
     }
+
+    public void resetProgress() {
+        this.correctAnswers = 0;
+        this.totalAttempts = 0;
+        this.answeredCorrectlyLastTime = false;
+        this.lastAnswerTime = 0;
+    }
 }

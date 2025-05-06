@@ -25,25 +25,19 @@ public class FlashcardUI {
 
     private String readInput() {
         try {
-            // CRITICAL FIX: Scanner.hasNextLine() blocks and waits for input, leading to
-            // the infinite loop
-            // Instead, just try to read directly and handle any exception
             if (scanner != null) {
                 try {
                     return scanner.nextLine().trim();
                 } catch (NoSuchElementException | IllegalStateException e) {
-                    // If scanner fails, continue to other methods
                     System.err.println("Scanner input failed, trying other methods");
                 }
             }
 
-            // Try BufferedReader next
             if (reader != null) {
                 try {
                     String line = reader.readLine();
                     return line != null ? line.trim() : "9";
                 } catch (IOException e) {
-                    // If reader fails, continue to other methods
                     System.err.println("BufferedReader input failed, trying other methods");
                 }
             }
@@ -56,10 +50,10 @@ public class FlashcardUI {
             }
 
             System.err.println("All input methods failed - returning exit code");
-            return "9"; // Exit code if all input methods fail
+            return "9";
         } catch (Exception e) {
             System.err.println("Error reading input: " + e.getMessage());
-            return "9"; // Exit code on error
+            return "9";
         }
     }
 
@@ -73,6 +67,7 @@ public class FlashcardUI {
                 "View Achievements",
                 "Settings",
                 "Help",
+                "Card Statistics",
                 "Exit"
         };
 
@@ -122,6 +117,9 @@ public class FlashcardUI {
                             flashcard.displayHelp();
                             break;
                         case 9:
+                            flashcard.showCardStats();
+                            break;
+                        case 10:
                             exit = true;
                             close();
                             System.out.println("Thank you for using the Flashcard System. Goodbye!");
@@ -142,6 +140,7 @@ public class FlashcardUI {
         String[] options = {
                 "Change Required Repetitions",
                 "Toggle Invert Cards",
+                "Reset Card Progress",
                 "Back to Main Menu"
         };
 
@@ -151,6 +150,7 @@ public class FlashcardUI {
             System.out.println("1. " + options[0] + " (Current: " + flashcard.getRequiredRepetitions() + ")");
             System.out.println("2. " + options[1] + " (Current: " + (flashcard.isInvertCards() ? "ON" : "OFF") + ")");
             System.out.println("3. " + options[2]);
+            System.out.println("4. " + options[3]);
             System.out.print("\nEnter your choice (1-" + options.length + "): ");
 
             try {
@@ -169,6 +169,9 @@ public class FlashcardUI {
                         System.out.println("Invert cards is now " + (flashcard.isInvertCards() ? "ON" : "OFF"));
                         break;
                     case 3:
+                        flashcard.resetCardProgress();
+                        break;
+                    case 4:
                         back = true;
                         break;
                 }
